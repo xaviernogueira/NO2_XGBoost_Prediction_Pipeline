@@ -32,7 +32,7 @@ import arcpy
 4. Use the make_prediction_map.py file to generate urban NO2 prediction maps at a chosen area of interest, spatial resolution, and temporal resolution. 
 
 
-# Function descriptions 
+# Supplementary function descriptions 
 Desripctions of useful standalone functions that are NOT attached to to automated pipelines.
 
 ## *arcpy_functions.py*
@@ -85,6 +85,7 @@ def ncf_metadata(ncf_files):
     :param ncf_files: a path (str) or a list of paths (list) to .ncf files
     :return a text file in the directory of the first .ncf file w/ all input file info
     """
+    
 def get_boundingbox(place, output_as='boundingbox', state_override=False):
     """
     Get the bounding box of a country or US state in EPSG4326 given it's name
