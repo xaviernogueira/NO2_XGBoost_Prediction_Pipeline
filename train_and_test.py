@@ -11,14 +11,12 @@ import pandas as pd
 import numpy as np
 import xgboost as xgb
 import sklearn
-from sklearn.model_selection import train_test_split
+import joblib
+import logging
 from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import make_scorer
 from sklearn.metrics import r2_score
 from sklearn.metrics import mean_squared_error
 from useful_functions import init_logger
-import joblib
-import logging
 
 
 def prep_input(in_data, in_cols, test_prop):
@@ -238,10 +236,10 @@ def shap_analytics(model, X_train, out_folder):
     shap_values = shap.TreeExplainer(model).shap_values(X_train)
 
     # plot both dot violin and bar plots to track feature importance
-    #plt.tight_layout()
-    #fig1 = shap.summary_plot(shap_values, X_train)
-    #fig1.save(out_folder + '\\SHAP_dot_plot.png')
-    #plt.cla()
+    plt.tight_layout()
+    fig1 = shap.summary_plot(shap_values, X_train)
+    fig1.save(out_folder + '\\SHAP_dot_plot.png')
+    plt.cla()
 
     fig2 = shap.summary_plot(shap_values, X_train, plot_type="bar")
     fig2.save(out_folder + '\\SHAP_bar_plot.png')
@@ -250,7 +248,7 @@ def shap_analytics(model, X_train, out_folder):
     return logging.info('SHAP feature importance plots saved @ %s' % out_folder)
 
 
-def plot_feature_importance(best_estimator, X_train, out_folder):
+def plot_feature_importance(best_estimator, out_folder):
     """
     Plots feature importance for a model
     :param best_estimator: the best_estimator_ model selected during GridSearch (out_list[1]) or other model
@@ -272,9 +270,6 @@ def plot_feature_importance(best_estimator, X_train, out_folder):
     plt.savefig(fig_name, dpi=300, bbox_inches='tight')
     logging.info('Done. Plot saved @ %s' % fig_name)
     plt.cla()
-
-    # save SHAP feature importance plots
-    #shap_analytics(model, X_train, out_folder)
 
     return logging.info('Done. All feature importance plots saved @ %s' % out_folder)
 
@@ -359,11 +354,18 @@ def train_and_run(in_csv, in_cols, params_list, test_prop, k=5):
 
     # plot model performance and feature importance
     model_test(X_test, y_test, best_model, out_list[2], out_folder)
-    plot_feature_importance(best_model, X_train, out_folder)
+    plot_feature_importance(best_model, out_folder)
     plot_hyperparams(out_list[0], param_grid, out_folder)
 
     # save model for predictions later
-    joblib.dump(best_model, out_folder + '\\best_estimator.pkl')
+    saved_model = out_folder + '\\best_estimator.pkl'
+    joblib.dump(best_model, saved_model)
+    logging.info('Trained/tuned model saved as %s' % saved_model)
+
+    # do SHAP feature importance analysis
+    X_shap = X_train[in_cols]
+    shap_model = joblib.load(saved_model)
+    shap_analytics(shap_model, X_shap, out_folder)
 
     return
 
@@ -373,11 +375,11 @@ def train_and_run(in_csv, in_cols, params_list, test_prop, k=5):
 # #########################################
 
 # Import data .csv and select independent variable columns
+# Note: There must be a mean_no2 column, which is the dependent variable
 DATA_CSV = r'PATH_TO_INPUT_DATA_CSV.csv'
 
 # Choose the portion (0 - 1) of the input data rows that should be separated for testing
 TEST_PORTION = 0.2
-# 'mean_no2'
 
 # list of independent variable column headers
 INDIE_VARS = ['sp', 'swvl1', 't2m', 'tp', 'u10', 'v10', 'blh', 'u100', 'v100', 'p_roads_1000',
@@ -401,15 +403,10 @@ max_depth_range = list(np.arange(4, 9, 1))
 # Do not edit, list is used to store the parameter ranges
 PARAMS_LIST = [gamma_range, eta_range, lambda_range, colsample_range, max_depth_range]
 
+# runs the train and test pipe line if file is ran
 if __name__ == "__main__":
     train_and_run(DATA_CSV, INDIE_VARS, PARAMS_LIST, test_prop=TEST_PORTION)
 
-    # for hardcoding SHAP
-    #o_fol = r'C:\Users\xrnogueira\Documents\Data\NO2_stations\MODEL_RUNS\Run3'
-    #X_train = pd.read_csv(o_fol + '\\X_train.csv')[keep_cols1]
-    #saved_model = o_fol + '\\best_estimator.pkl'
-    #model = joblib.load(saved_model)
-    #shap_analytics(model, X_train, o_fol)
 
 
 
