@@ -52,7 +52,118 @@ def make_test_csv(csv, rows=500):
     return out_csv
 
 
+def ncf_metadata(ncf_files):
+    """
+    Generates a formatted meta data text file for input .ncf file(s)
+    :param ncf_files: a path (str) or a list of paths (list) to .ncf files
+    :return a text file in the directory of the first .ncf file w/ all input file info
+    """
+    import netCDF4 as nc
+
+    print('Input files: %s' % ncf_files)
+
+    # define output dir for text file
+    if isinstance(ncf_files, list):
+        main_dir = os.path.dirname(ncf_files[0])
+        in_list = ncf_files
+    elif isinstance(ncf_files, str):
+        main_dir = os.path.dirname(ncf_files)
+        in_list = [ncf_files]
+    elif isinstance():
+        return print('ncf_file parameter is not a valid .ncf path of a list of paths')
+
+    # create a new text file
+    txt_dir = main_dir + '\\ncf_files_info.txt'
+    out_txt = open(txt_dir, 'w+')
+    out_txt.write('INPUT FILES METADATA\n----------------\n')
+
+    # format text file with ncf file metadata
+    for ncf in in_list:
+        out_txt.write('FILE: ' + ncf + '\n')
+        ds = nc.Dataset(ncf)
+        ds_dict = ds.__dict__
+        dims = ds.dimensions
+        for key in ds_dict.keys():
+            val = ds_dict[key]
+            out_txt.write('%s: %s\n' % (key, val))
+
+        # write the number of dimensions, their names, and sizes
+        out_txt.write('\n# of dimensions: %s\n' % len(dims))
+        for dim in ds.dimensions.values():
+            dim_txt = str(dim)
+            if 'name' in dim_txt:
+                split = dim_txt.split(':')[1]
+                out = split.replace('name', 'dimension')[1:]
+                out_txt.write(out + '\n')
+
+        # write all variable descriptions
+        variables = ds.variables.values()
+        out_txt.write('\n# of variables: %s' % len(variables))
+        for var in variables:
+            var_txt = str(var)
+            out = var_txt.split('>')[1]
+            out_txt.write('%s\n' % out)
+        out_txt.write('\n-------------\n')
+    out_txt.close()
+
+    return print('METADATA text file @ %s' % txt_dir)
+
+
+def get_boundingbox(place, output_as='boundingbox', state_override=False):
+    """
+    Get the bounding box of a country or US state in EPSG4326 given it's name
+    based on work by @mattijin (https://github.com/mattijn)
+
+    :param place: a name (str) of a country, city, or state in english and lowercase (i.e., beunos aires)
+    :param output_as: - either boundingbox' or 'center' (str)
+         * 'boundingbox' for [latmin, latmax, lonmin, lonmax]
+         * 'center' for [latcenter, loncenter]
+    :param integer: - default is False (bool), if True the output list is converted to integers
+    :param state_override: default is False (bool), only make True if mapping a state
+    :return a list with coordinates as floats i.e., [[11.777, 53.7253321, -70.2695876, 7.2274985]]
+    """
+    import requests
+    import iso3166
+    # create url to pull openstreetmap data
+    url_prefix = 'http://nominatim.openstreetmap.org/search?country='
+
+    country_list = [j.lower() for j in iso3166.countries_by_name.keys()]
+
+    if place not in country_list:
+        if state_override:
+            url_prefix = url_prefix.replace('country=', 'state=')
+        else:
+            url_prefix = url_prefix.replace('country=', 'city=')
+
+    url = '{0}{1}{2}'.format(url_prefix, place, '&format=json&polygon=0')
+    response = requests.get(url).json()[0]
+
+    # parse response to list, convert to integer if desired
+    if output_as == 'boundingbox':
+        lst = response[output_as]
+        coors = [float(i) for i in lst]
+        output = [coors[-2], coors[-1], coors[0], coors[1]]
+
+    elif output_as == 'center':
+        lst = [response.get(key) for key in ['lat', 'lon']]
+        coors = [float(i) for i in lst]
+        output = [coors[-1], coors[0]]
+
+    else:
+        print('ERROR: output_as parameter must set to either boundingbox or center (str)')
+        return
+
+    return output
+
+
 def bbox_poly(bbox, region, out_folder):
+    """
+    Creates a shapefile from a list with bounding box coordinates.
+    :param bbox: a list with [latmin, latmax, lonmin, lonmax] (returned from get_boundingbox())
+    :param region: a string with a region name (i.e., 'Chicago')
+    :param out_folder: a folder path in which to save the created shapefile
+    :return: the shapefile path
+    """
     import geopandas as gpd
     from shapely.geometry import Polygon
 
