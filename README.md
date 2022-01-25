@@ -14,6 +14,9 @@ import xgboost
 import sklearn
 import joblib
 import logging
+
+# for predictions and data pulling
+import arcpy
 ```
 
 # Prediction pipeline overview
