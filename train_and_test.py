@@ -1,3 +1,9 @@
+"""
+A pipeline that trains, tunes, and tests an XGBoost model using a .csv file input.
+
+author @xaviernogueira
+"""
+
 import os.path
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -362,24 +368,29 @@ def train_and_run(in_csv, in_cols, params_list, test_prop, k=5):
     return
 
 
-#  ########## SET XGBOOST PARAMETER RANGES ###########
-CSV_DIR = r'C:\Users\xrnogueira\Documents\Data\NO2_stations'
-main_csv = CSV_DIR + '\\master_monthly_no2_jan4.csv'
-krig_csv = CSV_DIR + '\\master_monthly_no2_jan4_rk.csv'
-#test_csv = CSV_DIR + '\\master_no2_daily_test_500_rows.csv'
+# #########################################
+# ########## INPUTS ARE BELOW #############
+# #########################################
 
+# Import data .csv and select independent variable columns
+DATA_CSV = r'PATH_TO_INPUT_DATA_CSV.csv'
 
-keep_cols1 = ['mean_no2',  'sp', 'swvl1', 't2m', 'tp', 'u10', 'v10', 'blh', 'u100', 'v100', 'p_roads_1000',
+# Choose the portion (0 - 1) of the input data rows that should be separated for testing
+TEST_PORTION = 0.2
+# 'mean_no2'
+
+# list of independent variable column headers
+INDIE_VARS = ['sp', 'swvl1', 't2m', 'tp', 'u10', 'v10', 'blh', 'u100', 'v100', 'p_roads_1000',
                  's_roads_1700', 's_roads_3000', 'tropomi', 'pod_den_1100', 'Z_r', 'Z']
-keep_cols2 = ['mean_no2', 'sp', 'swvl1', 't2m', 'tp', 'u10', 'v10', 'blh', 'u100', 'v100', 'p_roads_1000',
-                 's_roads_1700', 's_roads_3000', 'tropomi', 'pod_den_1100', 'Z_r', 'Z', 'no2_krig']
-keep_cols3 = ['mean_no2', 'sp', 't2m', 'tp', 'blh', 'tropomi', 'Z_r', 'Z']
 
-drop_cols = ['u10', 'v10', 'swvl1', 'u100', 'v100', 'mean_no2']
+# allows for specified variables to be removed from the model (optional, can be empty list)
+drop_cols = ['u10', 'v10', 'swvl1', 'u100', 'v100']
 
-keep_cols1 = [i for i in keep_cols1 if i not in drop_cols]
-keep_cols2 = [i for i in keep_cols2 if i not in drop_cols]
+# final list of independent variables
+INDIE_VARS = [i for i in INDIE_VARS if i not in drop_cols]
 
+#  ########## Set XGBoost parameter ranges ###########
+# Note: More increments substantially increases processing time (model tuning)
 
 gamma_range = list(np.arange(0, 1, 0.5))
 eta_range = [round(i, 2) for i in list(np.arange(0.01, 0.31, 0.05))]
@@ -387,12 +398,11 @@ lambda_range = [round(i, 1) for i in list(np.arange(0.6, 1.4, 0.2))]
 colsample_range = list(np.arange(0.5, 1.25, 0.25))
 max_depth_range = list(np.arange(4, 9, 1))
 
-params_list = [gamma_range, eta_range, lambda_range, colsample_range, max_depth_range]
+# Do not edit, list is used to store the parameter ranges
+PARAMS_LIST = [gamma_range, eta_range, lambda_range, colsample_range, max_depth_range]
 
 if __name__ == "__main__":
-    #train_and_run(main_csv, keep_cols1, params_list, test_prop=0.2)
-    #train_and_run(krig_csv, keep_cols2, params_list, test_prop=0.2)
-    train_and_run(main_csv, keep_cols3, params_list, test_prop=0.2)
+    train_and_run(DATA_CSV, INDIE_VARS, PARAMS_LIST, test_prop=TEST_PORTION)
 
     # for hardcoding SHAP
     #o_fol = r'C:\Users\xrnogueira\Documents\Data\NO2_stations\MODEL_RUNS\Run3'
