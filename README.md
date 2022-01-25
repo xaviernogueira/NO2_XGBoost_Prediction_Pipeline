@@ -31,3 +31,31 @@ import arcpy
 3. Assess your model's performance by looking the model test, feature importance, and hyper-parameter sensitivity plots stored in the generated ModelRun# folder. Use your assesment to update the input independent variables list and hyper-parameter ranges, and re-run until desirable performance is obtained. 
 4. Use the make_prediction_map.py file to generate urban NO2 prediction maps at a chosen area of interest, spatial resolution, and temporal resolution. 
 
+
+# Function descriptions 
+Desripctions of useful standalone functions that are NOT attached to to automated pipelines.
+
+## *arcpy_functions.py*
+
+```python
+def batch_resample_or_aggregate(in_folder, cell_size, out_folder='', str_in='.tif', agg=False):
+    """
+    This function resamples or aggregates every raster in a folder, and saves the new raster in a new folder
+    :param in_folder: Folder containing raster datasets
+    :param cell_size: The cell size (float or int) in the same units of the raster
+    :param out_folder: Output folder, if not specified, a folder 'resampled_{DIST} will be made in in_folder'
+    :param str_in: (.tif is default) A string within the raster file name to select for resampling
+    :param agg: Bool. If true, a SUM aggregation is used (for data like population) instead of bilinear resampling
+    :return: The new folder location containing resampled raster datasets
+    """
+    
+def batch_raster_project(in_folder, spatial_ref, out_folder='', suffix='_p.tif'):
+    """
+    This function batch projects rasters and places them in a new flder
+    :param in_folder: folder containing .tif rasters
+    :param out_folder: folder to save output rasters
+    :param spatial_ref: a spatial reference file or a raster/shapefile with the desired spatial reference
+    :param suffix: suffix to add to output rasters (_p is default i.e., btw.tif -> btw_p.tif)
+    :return: the out_folder
+    """
+```
