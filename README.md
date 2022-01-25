@@ -60,6 +60,15 @@ def batch_raster_project(in_folder, spatial_ref, out_folder='', suffix='_p.tif')
     :param suffix: suffix to add to output rasters (_p is default i.e., btw.tif -> btw_p.tif)
     :return: the out_folder
     """
+    
+def simple_raster_sample(in_table, sample_points, var_dict):
+    """
+    Samples a raster at lat/longs stored in a csv (w/o month or days)
+    :param in_table: A table with daily NO2 observations
+    :param sample_points: AQ station sample points with a station_id field
+    :param var_dict: a dictionary with variable names as keys and associated rasters as items
+    :return: a new csvn with sampled values
+    """
 ```
 
 ## *useful_functions.py*
