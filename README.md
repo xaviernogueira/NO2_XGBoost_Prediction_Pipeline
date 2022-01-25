@@ -31,6 +31,7 @@ import arcpy
 3. Assess your model's performance by looking the model test, feature importance, and hyper-parameter sensitivity plots stored in the generated ModelRun# folder. Use your assesment to update the input independent variables list and hyper-parameter ranges, and re-run until desirable performance is obtained. 
 4. Use the make_prediction_map.py file to generate urban NO2 prediction maps at a chosen area of interest, spatial resolution, and temporal resolution. 
 
+Flow charts are provided within the 'methods_flow_chart_figures' folder that illustrate the applied methodologies.
 
 # Supplementary function descriptions 
 Desripctions of useful standalone functions that are NOT attached to to automated pipelines.
