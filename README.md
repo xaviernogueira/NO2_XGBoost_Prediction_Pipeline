@@ -38,6 +38,8 @@ Desripctions of useful standalone functions that are NOT attached to to automate
 ## *arcpy_functions.py*
 
 ```python
+import arcpy 
+
 def batch_resample_or_aggregate(in_folder, cell_size, out_folder='', str_in='.tif', agg=False):
     """
     This function resamples or aggregates every raster in a folder, and saves the new raster in a new folder
@@ -58,4 +60,51 @@ def batch_raster_project(in_folder, spatial_ref, out_folder='', suffix='_p.tif')
     :param suffix: suffix to add to output rasters (_p is default i.e., btw.tif -> btw_p.tif)
     :return: the out_folder
     """
+```
+
+## *useful_functions.py*
+
+```python
+import iso3166
+import netCDF4
+import requests
+import geopandas
+import shapely
+
+def make_test_csv(csv, rows=500):
+    """
+    Takes a csv and randomly samples N number of rows to make a ML test csv (faster computation)
+    :param csv: a csv
+    :param rows: number of rows for test csv (int, default is 500)
+    :return: new test csv
+    """
+    
+def ncf_metadata(ncf_files):
+    """
+    Generates a formatted meta data text file for input .ncf file(s)
+    :param ncf_files: a path (str) or a list of paths (list) to .ncf files
+    :return a text file in the directory of the first .ncf file w/ all input file info
+    """
+def get_boundingbox(place, output_as='boundingbox', state_override=False):
+    """
+    Get the bounding box of a country or US state in EPSG4326 given it's name
+    based on work by @mattijin (https://github.com/mattijn)
+
+    :param place: a name (str) of a country, city, or state in english and lowercase (i.e., beunos aires)
+    :param output_as: - either boundingbox' or 'center' (str)
+         * 'boundingbox' for [latmin, latmax, lonmin, lonmax]
+         * 'center' for [latcenter, loncenter]
+    :param integer: - default is False (bool), if True the output list is converted to integers
+    :param state_override: default is False (bool), only make True if mapping a state
+    :return a list with coordinates as floats i.e., [[11.777, 53.7253321, -70.2695876, 7.2274985]]
+    """
+    
+def bbox_poly(bbox, region, out_folder):
+    """
+    Creates a shapefile from a list with bounding box coordinates.
+    :param bbox: a list with [latmin, latmax, lonmin, lonmax] (returned from get_boundingbox())
+    :param region: a string with a region name (i.e., 'Chicago')
+    :param out_folder: a folder path in which to save the created shapefile
+    :return: the shapefile path
+    """ 
 ```
