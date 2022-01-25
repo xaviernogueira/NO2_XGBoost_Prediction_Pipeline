@@ -1,10 +1,11 @@
 # NO2_XGBoost_Prediction_Pipeline
 A library facilitating the creation of XGBoost powered NO2 (monthly or daily) ground concentration prediction maps.
 
-# Pre-reqs
+# Dependencies
 Training, tuning, and testing the XGBoost model can be done without the use of ArcGIS's arcpy Python library. However, prediction maps are (currently) generated using arcpy funtionality.
 
 ```python
+# import core dependencies
 import os
 import matplotlib.pyplot 
 import seaborn 
