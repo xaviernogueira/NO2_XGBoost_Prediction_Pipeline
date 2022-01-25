@@ -151,3 +151,61 @@ def batch_raster_project(in_folder, spatial_ref, out_folder='', suffix='_p.tif')
             logging.info('ERROR, skipped %s' % file)
 
     return out_folder
+
+
+def simple_raster_sample(in_table, sample_points, var_dict):
+    """
+    Plain bagel raster sampling (w/o month or days)
+    :param in_table: A table with daily NO2 observations
+    :param sample_points: AQ station sample points with a station_id field
+    :param var_dict: a dictionary with variable names as keys and associated rasters as items
+    :return: a new csv
+    """
+
+    # initialize logger and format directories
+    init_logger(__file__)
+    logging.info('Running plain bagel (no months/days) raster sampling.')
+    out_dir = os.path.dirname(sample_points)
+    arcpy.env.overwriteOutput = True
+    out_csv = in_table.replace('.csv', '_export.csv')
+    temp_files = out_dir + '\\temp_files'
+    if not os.path.exists(temp_files):
+        os.makedirs(temp_files)
+
+    # set variables names
+    var_names = list(var_dict.keys())
+
+    in_df = pd.read_csv(in_table)
+    in_df.sort_values('station_id', inplace=True)
+    out_df = in_df.copy()
+    samp_dfs = []
+
+    for var in var_names:
+        ras = var_dict[var]
+        ras_name = os.path.basename(ras)[:-4]
+        logging.info('Pulling station point %s values...' % var)
+        t_dbf = temp_files + '\\%s_sample.dbf' % var
+        t_csv = t_dbf.replace('.dbf', '.csv')
+
+        # make a sample dataframe with a _Band_# header suffixes where # is the month index
+        sample_table = arcpy.sa.Sample(ras, sample_points, t_dbf, unique_id_field='station_id')
+
+        if os.path.exists(t_csv):
+            os.remove(t_csv)
+
+        arcpy.TableToTable_conversion(sample_table, os.path.dirname(t_csv), os.path.basename(t_csv))
+
+        samp_df = pd.read_csv(t_csv)
+        samp_df.rename(columns={ras_name: var, 'no2_annual': 'station_id'}, inplace=True)
+        samp_dfs.append(samp_df)
+
+    # join to the daily observation csv
+    for i, df in enumerate(samp_dfs):
+        var = var_names[i]
+        out_df = out_df.merge(df, on=['station_id'], how='left')
+        out_df[var] = out_df[var].fillna(0)
+
+    out_df.to_csv(out_csv)
+    logging.info('Done\nOutput csv with variables %s @ %s' % (var_names, out_csv))
+
+    return out_csv
